@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Pinch Zoom Image - Iteration 4</title>
+  <meta name="description" content="Mobile page with a pinch-zoomable image centered on a vibrant purple-to-orange gradient background, followed by a safety message." />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      /* Vibrant gradient: purple to orange (FedEx-inspired) */
+      background: linear-gradient(135deg, #6a00e6 0%, #b100ff 12%, #6a00e6 25%, #ff6a00 100%);
+      color: #fff;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      overflow-x: hidden;
+    }
+/* Top hero header (bolder text with glow) */
+.hero {
+  text-align: center;
+  padding: 28px 12px 12px;
+}
+
+/* 50% larger header text for "150 / NPIT" */
+.brand {
+  font-weight: 900;
+  font-size: 96px; /* ~50% larger than before */
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  margin: 0;
+  line-height: 1.05;
+}
+
+.brand small {
+  display: block;
+  font-weight: 700;
+  font-size: 22px;
+  opacity: 0.95;
+  margin-top: 6px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+/* Wide, large phone line with icon, spanning most of the width */
+.subline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 28px; /* big text for readability on mobile */
+  font-weight: 800;
+  margin-top: 8px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+
+.phone {
+  width: 40px; height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 3px solid #fff;
+  font-size: 18px;
+  line-height: 1;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.15);
+  background: rgba(0,0,0,0.25);
+}
+
+/* Stage area with pinch-zoom image */
+.stage {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  padding: 6px 12px 26px;
+  box-sizing: border-box;
+}
+
+.image-wrap {
+  touch-action: none;
+  will-change: transform;
+  width: min(92vw, 1000px);
+  height: auto;
+  max-width: 92vw;
+  background: #111;
+  border: 8px solid #000;
+  border-radius: 12px;
+  box-shadow: 0 14px 28px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  -webkit-user-d-select: none;
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+
+.hint {
+  text-align: center;
+  font-size: 14px;
+  color: #f3f3f3;
+  opacity: 0.95;
+  margin-top: 8px;
+  user-select: none;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+/* Safety Message section */
+.section {
+  text-align: center;
+  padding: 28px 16px 40px;
+}
+
+.section h2 {
+  font-size: 40px;
+  margin: 14px 0 8px;
+  font-weight: 900;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+.section p {
+  max-width: 700px;
+  margin: 0 auto;
+  font-size: 22px;
+  line-height: 1.6;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+}
+
+@media (max-width: 800px) {
+  .brand { font-size: 76px; } /* scale header down on small screens */
+  .section h2 { font-size: 34px; }
+  .section p { font-size: 20px; }
+  .subline { font-size: 24px; }
+}
+
+@media (max-width: 420px) {
+  .brand { font-size: 64px; }
+  .section h2 { font-size: 28px; }
+}
+
+  </style>
+</head>
+<body>
+  <header class="hero" aria-label="Gradient header iteration 4">
+    <div class="brand" aria-label="Brand title">
+      150 / NPIT
+    </div>
+<!-- Large, wide phone line (no middle text) -->
+<div class="subline" aria-label="Phone line">
+  <span class="phone" aria-label="Phone icon" style="font-family: serif;">☎</span>
+  <span>724 538 1980</span>
+</div>
+
+<div class="hint" aria-hidden="true">Pinch to zoom • Drag to pan</div>
+
+  </header>
+  <main class="stage" aria-label="Pinch zoom stage iteration 4">
+    <div id="imageWrap" class="image-wrap">
+      <img id="image" class="image" src="https://imagizer.imageshack.com/v2/1722x911q90/924/hvlJFK.png" alt="Pinch zoom map example" draggable="false" />
+    </div>
+  </main>
+  <section class="section" aria-label="Safety message iteration 4">
+    <h2>Safety Message</h2>
+    <p>
+      Always physically verify that trailer doors are closed and that there are no personnel inside before hooking up or moving any trailer.
+    </p>
+  </section>
+  <script>
+    // iteration 4: pinch-zoom image with updated visuals
+    (function() {
+      const wrap = document.getElementById('imageWrap');
+      const img = document.getElementById('image');
+
+      // Transform state
+      let scale = 1;
+      const minScale = 1;
+      const maxScale = 4;
+
+      let translateX = 0;
+      let translateY = 0;
+
+      // Pinch handling
+      let touching = false;
+      let pinchStartDist = 0;
+      let pinchStartScale = 1;
+      let pinchMid = { x: 0, y: 0 };
+
+      // Pan handling
+      let isPanning = false;
+      let lastPan = { x: 0, y: 0 };
+
+      function applyTransform() {
+        img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+      }
+
+      function tPoint(t) {
+        return { x: t.clientX, y: t.clientY };
+      }
+
+      function distance(a, b) {
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        return Math.hypot(dx, dy);
+      }
+
+      function midpoint(a, b) {
+        return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      }
+
+      function clampTranslate() {
+        const rect = wrap.getBoundingClientRect();
+        const maxX = Math.max(0, (scale - 1) * rect.width / 2);
+        const maxY = Math.max(0, (scale - 1) * rect.height / 2);
+        translateX = Math.min(maxX, Math.max(-maxX, translateX));
+        translateY = Math.min(maxY, Math.max(-maxY, translateY));
+      }
+
+      wrap.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isPanning = true;
+          const p = tPoint(e.touches[0]);
+          lastPan = { x: p.x, y: p.y };
+        } else if (e.touches.length === 2) {
+          touching = true;
+          const t1 = tPoint(e.touches[0]);
+          const t2 = tPoint(e.touches[1]);
+          pinchStartDist = distance(t1, t2);
+          pinchStartScale = scale;
+          const mid = midpoint(t1, t2);
+          pinchMid = mid;
+          const rect = wrap.getBoundingClientRect();
+          const originX = pinchMid.x - rect.left;
+          const originY = pinchMid.y - rect.top;
+          img.style.transformOrigin = `${originX}px ${originY}px`;
+        }
+      });
+
+      wrap.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && isPanning && scale > 1) {
+          const p = tPoint(e.touches[0]);
+          const dx = p.x - lastPan.x;
+          const dy = p.y - lastPan.y;
+          translateX += dx;
+          translateY += dy;
+          lastPan = { x: p.x, y: p.y };
+          clampTranslate();
+          applyTransform();
+          e.preventDefault();
+        } else if (e.touches.length === 2) {
+          const t1 = tPoint(e.touches[0]);
+          const t2 = tPoint(e.touches[1]);
+          const dist = distance(t1, t2);
+          const newScale = pinchStartScale * (dist / pinchStartDist);
+          const clamped = Math.max(minScale, Math.min(maxScale, newScale));
+          scale = clamped;
+
+          clampTranslate();
+          applyTransform();
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      wrap.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) touching = false;
+        if (e.touches.length === 0) isPanning = false;
+      });
+
+      wrap.addEventListener('wheel', (e) => {
+        if (!e.ctrlKey && !e.metaKey) return;
+        e.preventDefault();
+        const delta = -e.deltaY;
+        const factor = delta > 0 ? 1.1 : 0.9;
+        const newScale = scale * factor;
+        scale = Math.max(minScale, Math.min(maxScale, newScale));
+
+        const rect = wrap.getBoundingClientRect();
+        const cursorX = e.clientX - rect.left;
+        const cursorY = e.clientY - rect.top;
+
+        translateX = (translateX - cursorX) * (scale / (scale / factor)) + cursorX;
+        translateY = (translateY - cursorY) * (scale / (scale / factor)) + cursorY;
+
+        clampTranslate();
+        applyTransform();
+      }, { passive: false });
+
+      function init() {
+        scale = 1;
+        translateX = 0;
+        translateY = 0;
+        applyTransform();
+      }
+
+      if (img.complete) {
+        init();
+      } else {
+        img.onload = init;
+      }
+    })();
+  </script>
+</body>
+</html>
